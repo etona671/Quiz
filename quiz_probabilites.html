@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Défi Probabilités — Niveau Ingénieur</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+    color: #172033;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .app {
+    width: min(760px, 100%);
+    background: white;
+    border-radius: 24px;
+    box-shadow: 0 18px 60px rgba(15, 23, 42, .12);
+    overflow: hidden;
+  }
+  header {
+    padding: 28px 30px;
+    background: #172554;
+    color: white;
+  }
+  header h1 { margin: 0 0 8px; font-size: clamp(1.5rem, 4vw, 2rem); }
+  header p { margin: 0; opacity: .85; }
+  main { padding: 30px; }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  .intro { text-align: center; padding: 18px 0 10px; }
+  .intro .symbol { font-size: 4rem; margin-bottom: 12px; }
+  .intro h2 { margin: 0 0 10px; }
+  .intro p { color: #64748b; line-height: 1.6; }
+  button {
+    border: 0;
+    border-radius: 12px;
+    padding: 13px 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: transform .15s, opacity .15s;
+  }
+  button:hover { transform: translateY(-1px); }
+  .primary { background: #2563eb; color: white; }
+  .secondary { background: #e2e8f0; color: #172033; }
+  .center { text-align: center; }
+  .topline {
+    display: flex;
+    justify-content: space-between;
+    gap: 15px;
+    color: #64748b;
+    font-weight: 700;
+    margin-bottom: 12px;
+  }
+  .progress {
+    height: 9px;
+    background: #e2e8f0;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 0;
+    background: #2563eb;
+    transition: width .3s;
+  }
+  .question {
+    font-size: 1.22rem;
+    font-weight: 750;
+    line-height: 1.55;
+    margin-bottom: 22px;
+  }
+  .options { display: grid; gap: 12px; }
+  .option {
+    width: 100%;
+    text-align: left;
+    background: #f8fafc;
+    border: 2px solid #e2e8f0;
+    color: #172033;
+    font-weight: 600;
+  }
+  .option.selected {
+    border-color: #2563eb;
+    background: #eff6ff;
+  }
+  .actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 25px;
+  }
+  .score {
+    font-size: 4rem;
+    font-weight: 850;
+    color: #2563eb;
+    margin: 12px 0;
+  }
+  .level {
+    display: inline-block;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #dbeafe;
+    color: #1e40af;
+    font-weight: 800;
+  }
+  .details {
+    margin-top: 25px;
+    padding: 18px;
+    background: #f8fafc;
+    border-radius: 15px;
+    text-align: left;
+  }
+  .details p { margin: 8px 0; }
+  .muted { color: #64748b; }
+  @media (max-width: 520px) {
+    body { padding: 0; align-items: stretch; }
+    .app { border-radius: 0; min-height: 100vh; }
+    main { padding: 22px; }
+    header { padding: 24px 22px; }
+    .actions { flex-direction: column; }
+    .actions button { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🧮 Défi Probabilités</h1>
+    <p>Niveau Ingénieur · 10 questions</p>
+  </header>
+
+  <main>
+    <section id="start" class="screen active">
+      <div class="intro">
+        <div class="symbol">🎲</div>
+        <h2>Prêt à tester ton raisonnement ?</h2>
+        <p>
+          10 questions de probabilités, avec une difficulté progressive.
+          Une seule réponse est correcte à chaque question.
+        </p>
+        <button class="primary" onclick="startQuiz()">Commencer le quiz</button>
+      </div>
+    </section>
+
+    <section id="quiz" class="screen">
+      <div class="topline">
+        <span id="counter">Question 1 / 10</span>
+        <span id="liveScore">Score : 0</span>
+      </div>
+      <div class="progress"><div id="progressBar" class="progress-bar"></div></div>
+
+      <div id="question" class="question"></div>
+      <div id="options" class="options"></div>
+
+      <div class="actions">
+        <button class="secondary" onclick="previousQuestion()" id="prevBtn">← Précédente</button>
+        <button class="primary" onclick="nextQuestion()" id="nextBtn">Suivante →</button>
+      </div>
+    </section>
+
+    <section id="result" class="screen center">
+      <div class="intro">
+        <div class="symbol">🏆</div>
+        <h2>Quiz terminé !</h2>
+        <div id="score" class="score">0 / 10</div>
+        <div id="percentage" class="muted"></div>
+        <p><span id="level" class="level"></span></p>
+        <div id="details" class="details"></div>
+        <br>
+        <button class="primary" onclick="restartQuiz()">Recommencer</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+const questions = [
+  {
+    q: "Une urne contient 5 boules rouges et 3 boules bleues. On tire une boule au hasard. Quelle est la probabilité d'obtenir une boule rouge ?",
+    options: ["3/8", "5/8", "5/3", "1/2"],
+    answer: 1,
+    explanation: "Il y a 5 issues favorables parmi 8 boules au total : P(Rouge) = 5/8."
+  },
+  {
+    q: "On lance une pièce équilibrée deux fois. Quelle est la probabilité d'obtenir exactement une fois pile ?",
+    options: ["1/4", "1/2", "3/4", "1"],
+    answer: 1,
+    explanation: "Les deux cas favorables sont P-F et F-P parmi 4 issues équiprobables : 2/4 = 1/2."
+  },
+  {
+    q: "On lance un dé équilibré à six faces. Quelle est la probabilité d'obtenir un nombre supérieur ou égal à 5 ?",
+    options: ["1/6", "1/3", "1/2", "2/3"],
+    answer: 1,
+    explanation: "Les issues favorables sont 5 et 6, soit 2 issues sur 6 : 2/6 = 1/3."
+  },
+  {
+    q: "Deux événements A et B sont indépendants avec P(A)=0,4 et P(B)=0,5. Quelle est P(A ∩ B) ?",
+    options: ["0,1", "0,2", "0,4", "0,9"],
+    answer: 1,
+    explanation: "Pour des événements indépendants, P(A ∩ B)=P(A)P(B)=0,4×0,5=0,2."
+  },
+  {
+    q: "Une variable aléatoire X vaut 0 avec probabilité 0,3 et 10 avec probabilité 0,7. Quelle est son espérance E(X) ?",
+    options: ["3", "7", "10", "13"],
+    answer: 1,
+    explanation: "E(X)=0×0,3 + 10×0,7 = 7."
+  },
+  {
+    q: "Dans une classe, 60 % des étudiants étudient Python, 40 % étudient Java et 20 % étudient les deux. Quelle est la probabilité qu'un étudiant choisi au hasard étudie Python ou Java ?",
+    options: ["0,60", "0,80", "1,00", "1,20"],
+    answer: 1,
+    explanation: "P(Python ∪ Java)=0,6+0,4−0,2=0,8."
+  },
+  {
+    q: "Une maladie touche 1 % d'une population. Un test a une sensibilité de 95 %. Quelle est P(test positif | malade) ?",
+    options: ["0,01", "0,05", "0,95", "0,99"],
+    answer: 2,
+    explanation: "La sensibilité est précisément la probabilité qu'un test soit positif lorsque la personne est malade."
+  },
+  {
+    q: "Une pièce équilibrée est lancée 4 fois. Quelle est la probabilité d'obtenir exactement 2 fois pile ?",
+    options: ["1/16", "1/4", "3/8", "1/2"],
+    answer: 2,
+    explanation: "Il y a C(4,2)=6 séquences favorables parmi 16 séquences possibles : 6/16=3/8."
+  },
+  {
+    q: "Si P(A)=0,7, P(B)=0,6 et P(A ∩ B)=0,5, quelle est P(A | B) ?",
+    options: ["5/7", "5/6", "6/7", "1/2"],
+    answer: 1,
+    explanation: "P(A|B)=P(A∩B)/P(B)=0,5/0,6=5/6."
+  },
+  {
+    q: "Une variable aléatoire X suit une loi binomiale B(10, 0,3). Quelle est son espérance ?",
+    options: ["0,3", "3", "7", "10"],
+    answer: 1,
+    explanation: "Pour une loi binomiale B(n,p), E(X)=np. Ici 10×0,3=3."
+  }
+];
+
+let current = 0;
+let selected = Array(questions.length).fill(null);
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function startQuiz() {
+  current = 0;
+  selected = Array(questions.length).fill(null);
+  showScreen("quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const item = questions[current];
+  document.getElementById("counter").textContent = `Question ${current + 1} / ${questions.length}`;
+  document.getElementById("liveScore").textContent = `Score : ${calculateScore()}`;
+  document.getElementById("progressBar").style.width =
+    `${((current + 1) / questions.length) * 100}%`;
+
+  document.getElementById("question").textContent = item.q;
+
+  const options = document.getElementById("options");
+  options.innerHTML = "";
+
+  item.options.forEach((option, index) => {
+    const button = document.createElement("button");
+    button.className = "option" + (selected[current] === index ? " selected" : "");
+    button.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+    button.onclick = () => {
+      selected[current] = index;
+      renderQuestion();
+    };
+    options.appendChild(button);
+  });
+
+  document.getElementById("prevBtn").disabled = current === 0;
+  document.getElementById("nextBtn").textContent =
+    current === questions.length - 1 ? "Voir mon résultat 🏆" : "Suivante →";
+}
+
+function calculateScore() {
+  return selected.reduce((score, answer, i) =>
+    score + (answer === questions[i].answer ? 1 : 0), 0);
+}
+
+function nextQuestion() {
+  if (selected[current] === null) {
+    alert("Choisis une réponse avant de continuer.");
+    return;
+  }
+
+  if (current < questions.length - 1) {
+    current++;
+    renderQuestion();
+  } else {
+    showResult();
+  }
+}
+
+function previousQuestion() {
+  if (current > 0) {
+    current--;
+    renderQuestion();
+  }
+}
+
+function showResult() {
+  const score = calculateScore();
+  const percentage = Math.round((score / questions.length) * 100);
+
+  let level;
+  if (percentage >= 90) level = "🏆 Excellent niveau";
+  else if (percentage >= 80) level = "🔵 Très bon niveau";
+  else if (percentage >= 60) level = "🟢 Bon niveau";
+  else if (percentage >= 40) level = "🟡 Niveau moyen";
+  else level = "🟠 À renforcer";
+
+  document.getElementById("score").textContent = `${score} / ${questions.length}`;
+  document.getElementById("percentage").textContent = `${percentage} % de réussite`;
+  document.getElementById("level").textContent = level;
+
+  const details = document.getElementById("details");
+  details.innerHTML = `
+    <p><strong>Analyse :</strong></p>
+    <p>Réponses correctes : ${score}</p>
+    <p>Réponses incorrectes : ${questions.length - score}</p>
+    <p class="muted">Conseil : relis les notions correspondant aux questions que tu as manquées.</p>
+  `;
+
+  showScreen("result");
+}
+
+function restartQuiz() {
+  startQuiz();
+}
+</script>
+</body>
+</html>
