@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Quiz du jour — Structures de données en Java</title>
+
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --background: #f4f7fb;
+      --card: #ffffff;
+      --text: #172033;
+      --muted: #64748b;
+      --border: #dbe3ef;
+      --success: #15803d;
+      --danger: #b91c1c;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 25px 16px 50px;
+    }
+
+    header {
+      background: linear-gradient(135deg, #172554, #2563eb);
+      color: white;
+      padding: 30px 25px;
+      border-radius: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.6rem, 5vw, 2.3rem);
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    .progress-container {
+      height: 10px;
+      background: rgba(255,255,255,0.25);
+      border-radius: 20px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .progress {
+      height: 100%;
+      width: 0%;
+      background: white;
+      transition: width 0.3s ease;
+    }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .question-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 22px;
+      margin-bottom: 18px;
+      box-shadow: 0 5px 18px rgba(15, 23, 42, 0.05);
+    }
+
+    .question-number {
+      color: var(--primary);
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .question {
+      font-size: 1.08rem;
+      font-weight: bold;
+      margin: 8px 0 18px;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 13px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .option:hover {
+      border-color: var(--primary);
+      background: #eff6ff;
+    }
+
+    .option input {
+      margin-top: 5px;
+      accent-color: var(--primary);
+    }
+
+    .option.correct {
+      background: #f0fdf4;
+      border-color: #86efac;
+    }
+
+    .option.wrong {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 8px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .feedback.show {
+      display: block;
+    }
+
+    details {
+      margin-top: 15px;
+    }
+
+    summary {
+      cursor: pointer;
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    .hint {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 0.9rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 13px 22px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #submitBtn {
+      background: var(--primary);
+      color: white;
+    }
+
+    #submitBtn:hover {
+      background: var(--primary-dark);
+    }
+
+    #resetBtn {
+      background: #e2e8f0;
+      color: var(--text);
+    }
+
+    #result {
+      display: none;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 30px;
+      margin-top: 25px;
+      text-align: center;
+    }
+
+    .score {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .message {
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .details-result {
+      text-align: left;
+      display: grid;
+      gap: 8px;
+    }
+
+    .result-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #f8fafc;
+    }
+
+    .result-item.good {
+      border-left: 4px solid var(--success);
+    }
+
+    .result-item.bad {
+      border-left: 4px solid var(--danger);
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.85rem;
+      margin-top: 30px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 15px 10px 35px;
+      }
+
+      header {
+        padding: 23px 18px;
+        border-radius: 17px;
+      }
+
+      .question-card {
+        padding: 17px;
+      }
+
+      .question {
+        font-size: 1rem;
+      }
+
+      .actions button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <header>
+    <h1>Quiz du jour — Structures de données en Java</h1>
+    <p>10 questions • Raisonnement • Java</p>
+
+    <div class="progress-container">
+      <div class="progress" id="progress"></div>
+    </div>
+
+    <div class="progress-info">
+      <span id="answered">0 / 10 répondues</span>
+      <span id="liveScore">Score : —</span>
+    </div>
+  </header>
+
+  <form id="quiz"></form>
+
+  <div class="actions">
+    <button type="button" id="submitBtn">
+      Voir mon résultat
+    </button>
+
+    <button type="button" id="resetBtn">
+      Recommencer
+    </button>
+  </div>
+
+  <section id="result">
+
+    <h2>🎯 Votre résultat</h2>
+
+    <div class="score" id="score"></div>
+
+    <div class="message" id="message"></div>
+
+    <div class="details-result" id="details"></div>
+
+  </section>
+
+  <footer>
+    Quiz interactif autonome — Java & Structures de données
+  </footer>
+
+</div>
+
+
+<script>
+
+const questions = [
+
+  {
+    question:
+      "En Java, quelle structure garantit l’accès à l’élément d’indice i en temps constant O(1), lorsque le tableau est déjà créé ?",
+
+    options: [
+      "Tableau",
+      "Liste chaînée",
+      "File",
+      "Pile"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "L’accès par indice dans un tableau Java est direct et s’effectue en O(1).",
+      "Une liste chaînée doit parcourir les nœuds jusqu’à l’indice recherché.",
+      "Une file privilégie les opérations aux extrémités et ne garantit pas un accès arbitraire en O(1).",
+      "Une pile permet principalement l’accès au sommet, pas l’accès arbitraire par indice."
+    ],
+
+    hint:
+      "Compare la manière dont chaque structure localise un élément."
+  },
+
+
+  {
+    question:
+      "Une ArrayList Java contient 10 éléments et sa capacité interne est suffisante. Quelle est la complexité amortie de l’ajout d’un élément avec add(e) à la fin ?",
+
+    options: [
+      "O(1) amorti",
+      "O(log n) amorti",
+      "O(n) amorti",
+      "O(n log n) amorti"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "L’ajout en fin d’ArrayList est O(1) amorti sur une séquence d’ajouts.",
+      "L’ajout en fin ne nécessite pas une recherche logarithmique.",
+      "Un redimensionnement ponctuel peut coûter O(n), mais le coût amorti reste O(1).",
+      "L’ajout ne réalise ni tri ni opération de complexité O(n log n)."
+    ],
+
+    hint:
+      "Distingue le coût d’un redimensionnement ponctuel du coût amorti."
+  },
+
+
+  {
+    question:
+      "Quelle structure Java est la plus directement adaptée à une politique LIFO, où le dernier élément ajouté doit être le premier retiré ?",
+
+    options: [
+      "Stack",
+      "Queue",
+      "Deque utilisée uniquement en FIFO",
+      "PriorityQueue"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "Stack applique directement la logique LIFO.",
+      "Queue suit normalement une politique FIFO.",
+      "Une Deque utilisée uniquement comme file applique FIFO.",
+      "PriorityQueue retire les éléments selon leur priorité, pas selon leur ordre d’insertion."
+    ],
+
+    hint:
+      "Pense à l’ordre de retrait lorsqu’on ajoute plusieurs éléments."
+  },
+
+
+  {
+    question:
+      "Dans une HashMap<K,V>, quelle propriété est essentielle pour qu’une clé puisse retrouver correctement sa valeur après insertion ?",
+
+    options: [
+      "Une égalité cohérente entre equals et hashCode",
+      "Un ordre naturel obligatoire",
+      "Une implémentation de Comparable obligatoire",
+      "Une position fixe dans la table"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "Les clés doivent respecter le contrat entre equals et hashCode.",
+      "Une HashMap n’exige pas que ses clés possèdent un ordre naturel.",
+      "Comparable n’est pas obligatoire pour utiliser une clé dans une HashMap.",
+      "La position interne d’une entrée n’est pas un contrat de recherche."
+    ],
+
+    hint:
+      "Concentre-toi sur le contrat utilisé pour comparer les clés."
+  },
+
+
+  {
+    question:
+      "Quelle structure est généralement la plus appropriée pour tester rapidement si un élément appartient à un ensemble, sans avoir besoin d’un ordre trié ?",
+
+    options: [
+      "HashSet",
+      "LinkedList",
+      "ArrayList",
+      "Stack"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "HashSet est conçu pour les ensembles et offre en moyenne une recherche en temps constant.",
+      "LinkedList doit généralement parcourir ses éléments pour rechercher une valeur.",
+      "ArrayList effectue généralement une recherche par parcours, donc O(n).",
+      "Stack n’est pas conçue pour fournir une recherche d’appartenance rapide."
+    ],
+
+    hint:
+      "Cherche la structure dont le fonctionnement repose sur le hachage."
+  },
+
+
+  {
+    question:
+      "On effectue n insertions au début d’une LinkedList Java, chacune avec addFirst(e). Quelle est la complexité totale de cette séquence ?",
+
+    options: [
+      "O(n)",
+      "O(n²)",
+      "O(log n)",
+      "O(1)"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "Chaque addFirst est O(1), donc n insertions donnent O(n) au total.",
+      "O(n²) ne correspond pas à n opérations addFirst constantes.",
+      "Les insertions ne nécessitent pas une recherche logarithmique.",
+      "Une seule insertion est O(1), mais n insertions donnent O(n)."
+    ],
+
+    hint:
+      "Calcule le coût d’une insertion puis considère les n opérations."
+  },
+
+
+  {
+    question:
+      "Quelle structure Java conserve les éléments selon leur ordre naturel ou selon un Comparator fourni, tout en permettant des opérations typiquement logarithmiques ?",
+
+    options: [
+      "TreeSet",
+      "HashSet",
+      "ArrayDeque",
+      "LinkedHashSet"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "TreeSet maintient les éléments selon leur ordre naturel ou un Comparator.",
+      "HashSet est fondé sur le hachage et ne maintient pas un ordre trié.",
+      "ArrayDeque est optimisée pour les opérations aux extrémités.",
+      "LinkedHashSet conserve principalement l’ordre d’insertion."
+    ],
+
+    hint:
+      "Identifie le Set qui maintient un ordre trié."
+  },
+
+
+  {
+    question:
+      "Une PriorityQueue Java contient plusieurs éléments. Quelle règle détermine normalement l’élément placé en tête lorsque aucun Comparator personnalisé n’est fourni ?",
+
+    options: [
+      "L’ordre naturel des éléments",
+      "L’ordre d’insertion",
+      "L’ordre inverse des insertions",
+      "La longueur du nom de classe"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "Sans Comparator personnalisé, PriorityQueue utilise l’ordre naturel des éléments.",
+      "PriorityQueue ne garantit pas une priorité fondée sur l’ordre d’insertion.",
+      "La priorité n’est pas déterminée par une politique LIFO.",
+      "Le nom de classe ne détermine pas la priorité."
+    ],
+
+    hint:
+      "Une file de priorité ne fonctionne ni comme une pile ni comme une file FIFO ordinaire."
+  },
+
+
+  {
+    question:
+      "Pour supprimer fréquemment des éléments au début d’une séquence, quelle structure est généralement préférable entre ArrayList et ArrayDeque ?",
+
+    options: [
+      "ArrayDeque",
+      "ArrayList",
+      "ArrayList uniquement si elle est triée",
+      "Les deux ont toujours exactement le même coût"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "ArrayDeque est conçue pour des opérations efficaces aux deux extrémités.",
+      "Supprimer au début d’une ArrayList nécessite généralement de décaler les éléments restants.",
+      "Le tri ne supprime pas le coût du déplacement des éléments.",
+      "Les deux structures n’offrent pas les mêmes garanties opérationnelles."
+    ],
+
+    hint:
+      "Observe ce qui arrive aux autres éléments lorsqu’on retire le premier."
+  },
+
+
+  {
+    question:
+      "Quelle structure de données est la plus adaptée pour représenter un graphe peu dense lorsque l’on veut économiser de l’espace par rapport à une matrice d’adjacence ?",
+
+    options: [
+      "Liste d’adjacence",
+      "Matrice d’adjacence",
+      "Pile",
+      "File circulaire"
+    ],
+
+    answer: 0,
+
+    feedback: [
+      "Une liste d’adjacence stocke principalement les sommets et leurs arêtes existantes.",
+      "Une matrice d’adjacence utilise un espace proportionnel au carré du nombre de sommets.",
+      "Une pile ne représente pas directement les relations entre sommets.",
+      "Une file circulaire sert à gérer des éléments selon une politique de file."
+    ],
+
+    hint:
+      "Compare l’espace utilisé pour les relations existantes et absentes."
+  }
+
+];
+
+
+const quiz = document.getElementById("quiz");
+
+
+/* Génération des questions */
+
+questions.forEach((item, index) => {
+
+  const card = document.createElement("section");
+
+  card.className = "question-card";
+
+  card.innerHTML = `
+
+    <div class="question-number">
+      Question ${index + 1} / ${questions.length}
+    </div>
+
+    <div class="question">
+      ${item.question}
+    </div>
+
+    <div class="options">
+
+      ${item.options.map((option, optionIndex) => `
+
+        <label class="option"
+               data-question="${index}"
+               data-answer="${optionIndex}">
+
+          <input
+            type="radio"
+            name="question${index}"
+            value="${optionIndex}"
+          >
+
+          <span>
+            <strong>${String.fromCharCode(65 + optionIndex)}.</strong>
+            ${option}
+          </span>
+
+        </label>
+
+      `).join("")}
+
+    </div>
+
+    <details>
+
+      <summary>💡 Afficher l’indice</summary>
+
+      <div class="hint">
+        ${item.hint}
+      </div>
+
+    </details>
+  `;
+
+  quiz.appendChild(card);
+
+});
+
+
+/* Progression */
+
+function updateProgress() {
+
+  let answered = 0;
+
+  questions.forEach((_, index) => {
+
+    const selected =
+      document.querySelector(
+        `input[name="question${index}"]:checked`
+      );
+
+    if (selected) {
+      answered++;
+    }
+
+  });
+
+  const percentage =
+    (answered / questions.length) * 100;
+
+  document.getElementById("answered").textContent =
+    `${answered} / ${questions.length} répondues`;
+
+  document.getElementById("progress").style.width =
+    percentage + "%";
+}
+
+
+quiz.addEventListener("change", updateProgress);
+
+
+/* Correction */
+
+document.getElementById("submitBtn").addEventListener("click", () => {
+
+  let score = 0;
+
+  const details =
+    document.getElementById("details");
+
+  details.innerHTML = "";
+
+
+  questions.forEach((item, index) => {
+
+    const selected =
+      document.querySelector(
+        `input[name="question${index}"]:checked`
+      );
+
+    const labels =
+      document.querySelectorAll(
+        `.option[data-question="${index}"]`
+      );
+
+
+    labels.forEach((label, optionIndex) => {
+
+      label.classList.add("disabled");
+
+      if (optionIndex === item.answer) {
+        label.classList.add("correct");
+      }
+
+      if (
+        selected &&
+        Number(selected.value) === optionIndex &&
+        optionIndex !== item.answer
+      ) {
+        label.classList.add("wrong");
+      }
+
+
+      const feedback =
+        document.createElement("div");
+
+      feedback.className = "feedback show";
+
+      feedback.textContent =
+        item.feedback[optionIndex];
+
+      label.appendChild(feedback);
+
+    });
+
+
+    const resultItem =
+      document.createElement("div");
+
+
+    if (
+      selected &&
+      Number(selected.value) === item.answer
+    ) {
+
+      score++;
+
+      resultItem.className =
+        "result-item good";
+
+      resultItem.textContent =
+        `Question ${index + 1} : ✓ Bonne réponse`;
+
+    } else {
+
+      resultItem.className =
+        "result-item bad";
+
+      resultItem.textContent =
+        `Question ${index + 1} : ✗ À revoir`;
+    }
+
+
+    details.appendChild(resultItem);
+
+  });
+
+
+  const percentage =
+    Math.round(
+      (score / questions.length) * 100
+    );
+
+
+  document.getElementById("score").textContent =
+    `${score} / ${questions.length} (${percentage} %)`;
+
+  document.getElementById("liveScore").textContent =
+    `Score : ${score}/${questions.length}`;
+
+
+  let message;
+
+
+  if (percentage === 100) {
+
+    message =
+      "🔥 Excellent ! Maîtrise parfaite.";
+
+  } else if (percentage >= 80) {
+
+    message =
+      "😎 Très bon résultat ! Continue ainsi.";
+
+  } else if (percentage >= 60) {
+
+    message =
+      "💪 Bon travail ! Quelques notions sont encore à consolider.";
+
+  } else {
+
+    message =
+      "🚀 Bon point de départ. Revois les notions et retente le quiz.";
+  }
+
+
+  document.getElementById("message").textContent =
+    message;
+
+
+  document.getElementById("result").style.display =
+    "block";
+
+
+  document.getElementById("result").scrollIntoView({
+    behavior: "smooth"
+  });
+
+
+  document.getElementById("submitBtn").disabled =
+    true;
+
+});
+
+
+/* Recommencer */
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+
+  location.reload();
+
+});
+
+</script>
+
+</body>
+</html>
